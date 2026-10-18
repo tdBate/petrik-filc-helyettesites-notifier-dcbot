@@ -1,6 +1,7 @@
 import { RootSubstitution, Lesson, Day, Period, Subject, Teacher, Substitution, Teacher2, ShortSubstitution, ShortNews, RootNews } from "./models/Models";
 import { ServerData } from "./models/Models";
 import fs from "node:fs";
+import { teachersList } from "./server";
 
 const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -29,7 +30,12 @@ export function parseSubstitution(data: RootSubstitution): ShortSubstitution | n
         let subteacher: string;
         if (data.substitution.substituter == null) {
             subteacher = "Elmarad";
-        } else {
+        } else if (data.teacher == null) {
+            const substituterId = data.substitution.substituter;
+            const substituter: Teacher2 = teachersList.find(teacher => teacher.id == substituterId)!;
+            subteacher = `${substituter.firstName} ${substituter.lastName}`;
+        }
+        else {
             subteacher = `${data.teacher.firstName} ${data.teacher.lastName}`;
         }
 

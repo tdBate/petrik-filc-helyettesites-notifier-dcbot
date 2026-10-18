@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } from "discord.js";
-import { RootSubstitution, ShortSubstitution, ServerData, ShortNews, RootNews } from "./models/Models";
+import { RootSubstitution, ShortSubstitution, ServerData, ShortNews, RootNews, Teacher2 } from "./models/Models";
 import { createMessageText, detectSubChanges, filterData, isClassImpacted, parseNews, parseSubstitution, saveServerData, detectNewsChanges, isNewsClassImpacted, createNewsMessageText } from "./tools";
 import fs from "node:fs";
 import "dotenv/config";
@@ -7,9 +7,11 @@ import "dotenv/config";
 //data stuff
 const URL_SUBSTITUTIONS: string = "https://filc.petrik.hu/api/timetable/substitutions";
 const URL_NEWS: string = "https://filc.petrik.hu/api/news/announcements";
+const TEACHER_LINK = "https://filc.petrik.hu/api/rpc/timetable/teachers/getAll";
 let substitutionData: RootSubstitution[];
 let newsData: ShortNews[];
 let serverData: ServerData[];
+export let teachersList: Teacher2[]
 
 async function setup() {
     substitutionData = JSON.parse(fs.readFileSync("./data/substitutions.json").toString());
@@ -21,8 +23,7 @@ async function getSubData() {
     try {
         const response: Response = await fetch(URL_SUBSTITUTIONS);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-        const new_substitutionData: RootSubstitution[] = filterData(JSON.parse(await response.text()).data);
+        const new_substitutionData: RootSubstitution[] = filterData(JSON.parse(await response.text()).items);
 
         //check for changes
         if (JSON.stringify(new_substitutionData) != JSON.stringify(substitutionData)) {
@@ -75,6 +76,23 @@ async function getNewsData() {
             fs.writeFileSync("./data/announcements.json", JSON.stringify(newsData));
             console.log("Update detected...");
         }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function getTeachers() {
+    try {
+        const response: Response = await fetch(TEACHER_LINK, {
+            method: "GET",
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+                Cookie: `__Secure-filc.session_token=${process.env.SESSION_TOKEN}`
+            }
+        });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        teachersList = JSON.parse(await response.text()).json.items as Teacher2[];
     } catch (err) {
         console.error(err);
     }
@@ -176,6 +194,7 @@ function sendNewsMessage(data: ShortNews) {
 
 async function main() {
     await setup();
+    await getTeachers();
     await getSubData();
     await getNewsData();
 
