@@ -56,7 +56,7 @@ async function getNewsData() {
         });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-        const new_newsData = JSON.parse(await response.text()).data.map((item: RootNews) => parseNews(item)) as ShortNews[];
+        const new_newsData = JSON.parse(await response.text()).items.map((item: RootNews) => parseNews(item)) as ShortNews[];
         if (!new_newsData) {
             throw new Error("Error in parsing new");
         }
