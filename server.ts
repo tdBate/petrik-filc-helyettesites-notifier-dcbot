@@ -2,7 +2,7 @@ import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } from "di
 import { RootSubstitution, Teacher2 } from "./models/substitutionModels";
 import { RootNews } from "./models/announcementModels";
 import { ShortSubstitution, ServerData, ShortNews } from "./models/createdModels";
-import { createMessageText, detectSubChanges, filterData, isClassImpacted, parseNews, parseSubstitution, saveServerData, detectNewsChanges, isNewsClassImpacted, createNewsMessageText } from "./tools";
+import { createSubMessageText, detectSubChanges, filterData, isClassImpacted, parseNews, parseSubstitution, saveServerData, detectNewsChanges, isNewsClassImpacted, createNewsMessageText } from "./tools";
 import fs from "node:fs";
 import "dotenv/config";
 
@@ -175,7 +175,7 @@ function sendMessage(data: ShortSubstitution) {
             //check if selected class is impacted
             client.channels.fetch(serverData[i].channel_id).then(channel => {
                 if (channel && channel.isSendable()) {
-                    channel.send(createMessageText(data));
+                    channel.send(createSubMessageText(data));
                 }
             });
         }

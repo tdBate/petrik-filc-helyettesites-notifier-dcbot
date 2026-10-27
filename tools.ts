@@ -22,6 +22,7 @@ export function parseSubstitution(data: RootSubstitution): ShortSubstitution | n
         const date = data.substitution.date;
         const classroom = base_lesson.classrooms.map(c => c.short || "").join(", ") || "N/A";
         const teacher = base_lesson.teachers.map(a => a.name).join(", ");
+        const group = base_lesson.groups.map(a => a.name).join(", ") || ""
 
         let ido =
             data.lessons
@@ -51,7 +52,8 @@ export function parseSubstitution(data: RootSubstitution): ShortSubstitution | n
             classroom: classroom,
             teacher: teacher,
             subteacher: subteacher,
-            comment: comment
+            comment: comment,
+            group: group
         };
         return shortSub;
     } catch (err) {
@@ -108,11 +110,11 @@ export function detectNewsChanges(oldData: ShortNews[], newData: ShortNews[]): S
     return addedNews;
 }
 
-export function createMessageText(data: ShortSubstitution): string {
+export function createSubMessageText(data: ShortSubstitution): string {
     const date = new Date(data.date);
     const message = `## **Substitution Notice**
 > *Time*   :: ${date.toLocaleDateString("hu-HU")} **${weekday[date.getDay()]}** @ ${data.time}
-> *Class*  :: ${data.cohorts} (Room: ${data.classroom})
+> *Class*  :: ${data.cohorts} ${data.group} (Room: ${data.classroom})
 > *Lesson* :: **${data.lessons}**
 > *Staff*  :: **${data.subteacher}** (covering ${data.teacher})
 > *Note*   :: ${data.comment || "None"}`;

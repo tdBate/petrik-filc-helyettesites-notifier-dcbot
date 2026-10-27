@@ -8,6 +8,7 @@ export interface ShortSubstitution {
     teacher: string;
     subteacher: string;
     comment: string;
+    group: string;
 }
 
 export interface ServerData {
