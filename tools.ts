@@ -1,5 +1,7 @@
-import { RootSubstitution, Lesson, Day, Period, Subject, Teacher, Substitution, Teacher2, ShortSubstitution, ShortNews, RootNews } from "./models/Models";
-import { ServerData } from "./models/Models";
+import { RootSubstitution, Lesson, Day, Period, Subject, Teacher, Substitution, Teacher2 } from "./models/substitutionModels";
+import { RootNews } from "./models/announcementModels";
+import { ShortSubstitution, ShortNews } from "./models/createdModels";
+import { ServerData } from "./models/createdModels";
 import fs from "node:fs";
 import { teachersList } from "./server";
 

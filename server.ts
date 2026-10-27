@@ -1,5 +1,7 @@
 import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } from "discord.js";
-import { RootSubstitution, ShortSubstitution, ServerData, ShortNews, RootNews, Teacher2 } from "./models/Models";
+import { RootSubstitution, Teacher2 } from "./models/substitutionModels";
+import { RootNews } from "./models/announcementModels";
+import { ShortSubstitution, ServerData, ShortNews } from "./models/createdModels";
 import { createMessageText, detectSubChanges, filterData, isClassImpacted, parseNews, parseSubstitution, saveServerData, detectNewsChanges, isNewsClassImpacted, createNewsMessageText } from "./tools";
 import fs from "node:fs";
 import "dotenv/config";
