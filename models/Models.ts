@@ -6,7 +6,7 @@ export interface RootSubstitution {
 
 export interface Lesson {
     classrooms: any[];
-    cohorts: string[];
+    cohorts: Cohort[];
     day: Day;
     id: string;
     period: Period;
@@ -15,6 +15,12 @@ export interface Lesson {
     teachers: Teacher[];
     termDefinitionId: string;
     weeksDefinitionId: string;
+}
+
+export interface Cohort {
+    id: string;
+    name: string;
+    short: string;
 }
 
 export interface Day {

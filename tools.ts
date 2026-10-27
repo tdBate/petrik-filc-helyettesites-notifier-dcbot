@@ -16,9 +16,9 @@ export function parseSubstitution(data: RootSubstitution): ShortSubstitution | n
         } catch (err) {
             console.error(err);
         }
-        const cohort = base_lesson.cohorts.join(", ");
+        const cohort = base_lesson.cohorts.map(a => { return a.short }).join(", ");
         const date = data.substitution.date;
-        const classroom = base_lesson.classrooms.map(c => c.name || "").join(", ") || "N/A";
+        const classroom = base_lesson.classrooms.map(c => c.short || "").join(", ") || "N/A";
         const teacher = base_lesson.teachers.map(a => a.name).join(", ");
 
         let ido =
