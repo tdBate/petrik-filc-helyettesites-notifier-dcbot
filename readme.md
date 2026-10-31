@@ -13,6 +13,7 @@ Simple discord bot which listens to filc.petrik.hu and notifies when a selected 
     
 
 ## Usage: hosting the bot
+> ⚠️ **Warning:** *first run the server before adding it to a discord channel*
 1. clone the repo
 2. in the project root folder ``` npm run setup ```
 3. create a .env file and add session tokens in it
@@ -22,3 +23,4 @@ Simple discord bot which listens to filc.petrik.hu and notifies when a selected 
     SESSION_TOKEN= (insert the session token from filc.petrik.hu cookies)
     ```
 4. ``` npm run server ```
+5. after that add to the server go see usage

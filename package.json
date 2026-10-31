@@ -4,12 +4,12 @@
     "description": "",
     "main": "server.js",
     "scripts": {
-        "setup": "npm i && mkdir data && touch ./data/servers.json && touch ./data/substitutions.json && echo \"[]\" > ./data/substitutions.json && echo \"[]\" > ./data/servers.json",
+        "setup": "npm i && node -e \"const fs=require('fs');fs.mkdirSync('data',{recursive:true});for(const f of ['servers.json','substitutions.json','announcements.json']){const p='data/'+f;if(!fs.existsSync(p))fs.writeFileSync(p,'[]');}console.log('data/ is ready');\"",
         "server": "npx tsx server.ts"
     },
     "keywords": [],
     "author": "",
-    "license": "ISC",
+    "license": "GPL-3.0-only",
     "type": "module",
     "devDependencies": {
         "tsx": "^4.23.13"
