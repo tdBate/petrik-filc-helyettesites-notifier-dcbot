@@ -5,7 +5,8 @@
     "main": "server.js",
     "scripts": {
         "setup": "npm i && mkdir data && touch ./data/servers.json && touch ./data/substitutions.json && echo \"[]\" > ./data/substitutions.json && echo \"[]\" > ./data/servers.json",
-        "server": "npx tsx server.ts"
+        "server": "npx tsx server.ts",
+        "test": "vitest"
     },
     "keywords": [],
     "author": "",
@@ -16,6 +17,7 @@
     },
     "dependencies": {
         "discord.js": "^14.27.0",
-        "dotenv": "^17.4.2"
+        "dotenv": "^17.4.2",
+        "vitest": "^5.0.5"
     }
 }
