@@ -1,23 +1,27 @@
 import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } from "discord.js";
 import { RootSubstitution, Teacher2 } from "./models/substitutionModels";
 import { RootNews } from "./models/announcementModels";
-import { ShortSubstitution, ServerData, ShortNews } from "./models/createdModels";
-import { createSubMessageText, detectSubChanges, filterData, isClassImpacted, parseNews, parseSubstitution, saveServerData, detectNewsChanges, isNewsClassImpacted, createNewsMessageText } from "./tools";
+import { ShortSubstitution, ServerData, ShortNews, ShortMovedLesson } from "./models/createdModels";
+import { createSubMessageText, detectSubChanges, filterData, isClassImpacted, parseNews, parseSubstitution, saveServerData, detectNewsChanges, isNewsClassImpacted, createNewsMessageText, parseMovedLesson, detectMovedLessonChanges, isMovedClassImpacted, createMovedMessageText } from "./tools";
 import fs from "node:fs";
 import "dotenv/config";
+import { RootMovedLesson } from "./models/movedLessonModels";
 
 //data stuff
 const URL_SUBSTITUTIONS: string = "https://filc.petrik.hu/api/timetable/substitutions";
 const URL_NEWS: string = "https://filc.petrik.hu/api/news/announcements";
+const URL_MOVED_LESSONS = "https://filc.petrik.hu/api/rpc/timetable/movedLessons/list";
 const TEACHER_LINK = "https://filc.petrik.hu/api/rpc/timetable/teachers/getAll";
 let substitutionData: RootSubstitution[];
 let newsData: ShortNews[];
 let serverData: ServerData[];
+let movedData: ShortMovedLesson[];
 export let teachersList: Teacher2[]
 
 async function setup() {
     substitutionData = JSON.parse(fs.readFileSync("./data/substitutions.json").toString());
     newsData = JSON.parse(fs.readFileSync("./data/announcements.json").toString());
+    movedData = JSON.parse(fs.readFileSync("./data/movedlessons.json").toString());
     serverData = JSON.parse(fs.readFileSync("./data/servers.json").toString());
 }
 
@@ -95,6 +99,33 @@ async function getTeachers() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         teachersList = JSON.parse(await response.text()).json.items as Teacher2[];
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function getMovedData() {
+    try {
+        const response: Response = await fetch(URL_MOVED_LESSONS);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const new_movedData: ShortMovedLesson[] = JSON.parse(await response.text()).json.items.map((item: RootMovedLesson) => parseMovedLesson(item));
+        //console.log(JSON.stringify(new_movedData))
+
+        //check for changes
+        if (JSON.stringify(new_movedData) != JSON.stringify(movedData)) {
+            const changes: ShortMovedLesson[] = detectMovedLessonChanges(movedData, new_movedData);
+            //if (changes.length>10) {throw new Error("Too much new data");}
+            for (let i = 0; i < changes.length; i++) {
+                const movedLesson = changes[i];
+                if (movedLesson != null) {
+                    sendMovedMessage(movedLesson);
+                }
+            }
+
+            movedData = new_movedData;
+            fs.writeFileSync("./data/movedlessons.json", JSON.stringify(movedData));
+            console.log("Update detected...");
+        }
     } catch (err) {
         console.error(err);
     }
@@ -194,16 +225,30 @@ function sendNewsMessage(data: ShortNews) {
     }
 }
 
+function sendMovedMessage(data: ShortMovedLesson) {
+    for (let i = 0; i < serverData.length; i++) {
+        if (isMovedClassImpacted(data, serverData[i].cohort)) {
+            client.channels.fetch(serverData[i].channel_id).then(channel => {
+                if (channel && channel.isSendable()) {
+                    channel.send(createMovedMessageText(data));
+                }
+            });
+        }
+    }
+}
+
 async function main() {
     await setup();
     await getTeachers();
     await getSubData();
     await getNewsData();
+    await getMovedData();
 
     setInterval(
         () => {
             getSubData();
             getNewsData();
+            getMovedData();
         },
         1000 * 60 * 5
     );

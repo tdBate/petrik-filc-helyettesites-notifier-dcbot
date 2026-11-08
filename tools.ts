@@ -1,9 +1,10 @@
 import { RootSubstitution, Lesson, Day, Period, Subject, Teacher, Substitution, Teacher2 } from "./models/substitutionModels";
 import { RootNews } from "./models/announcementModels";
-import { ShortSubstitution, ShortNews } from "./models/createdModels";
+import { ShortSubstitution, ShortNews, ShortMovedLesson } from "./models/createdModels";
 import { ServerData } from "./models/createdModels";
 import fs from "node:fs";
 import { teachersList } from "./server";
+import { RootMovedLesson } from "./models/movedLessonModels";
 
 const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -77,6 +78,35 @@ export function parseNews(data: RootNews): ShortNews | null {
     }
 }
 
+export function parseMovedLesson(data: RootMovedLesson) {
+    const base_lesson = data.lessons[0];
+    try {
+        let ido =
+            data.lessons
+                .map(a => a.period.period)
+                .sort((a, b) => a - b)
+                .join("-") + " óra";
+
+
+        const shortMovedLesson: ShortMovedLesson = {
+            id: data.movedLesson.id,
+            lessons: base_lesson.subject.short,
+            cohorts: base_lesson.cohorts.map(a => { return a.short }).join(", "),
+            group: base_lesson.groups.map(a => a.name).join(", ") || "",
+            date: new Date(data.movedLesson.date),
+            time: ido,
+            originalClassroom: base_lesson.classrooms.map(c => c.short || "").join(", ") || "N/A",
+            newClassroom: data.classroom.short,
+            teacher: base_lesson.teachers.map((t) => t.name).join(", "),
+            comment: data.movedLesson.comment
+        }
+
+        return shortMovedLesson;
+    } catch (err) {
+        console.error("Movedlesson error: " + err)
+    }
+}
+
 //check for empty records
 export function filterData(data: RootSubstitution[]): RootSubstitution[] {
     return data.filter(item => item.lessons && item.lessons.length > 0);
@@ -92,6 +122,23 @@ export function detectSubChanges(oldData: RootSubstitution[], newData: RootSubst
         }
     }
     return addedSubstitutions;
+}
+
+export function detectMovedLessonChanges(oldData: ShortMovedLesson[], newData: ShortMovedLesson[]): ShortMovedLesson[] {
+    let addedMovedLesson: ShortMovedLesson[] = [];
+    for (let i = 0; i < newData.length; i++) {
+        const item: ShortMovedLesson = newData[i];
+
+        if (
+            !oldData.some((a: ShortMovedLesson) => {
+                const condition: boolean = a.id == item.id;
+                return condition;
+            })
+        ) {
+            addedMovedLesson.push(item);
+        }
+    }
+    return addedMovedLesson;
 }
 
 export function detectNewsChanges(oldData: ShortNews[], newData: ShortNews[]): ShortNews[] {
@@ -135,6 +182,18 @@ export function createNewsMessageText(data: ShortNews): string {
     return message;
 }
 
+export function createMovedMessageText(data: ShortMovedLesson): string {
+    const date = new Date(data.date);
+    const message = `## **Moved Lesson Notice**
+> *Time*   :: ${date.toLocaleDateString("hu-HU")} **${weekday[date.getDay()]}** @ ${data.time}
+> *Lesson*  :: ${data.cohorts} ${data.group} **${data.lessons}**
+> *Room* :: ${data.originalClassroom} -> **${data.newClassroom}**
+> *Staff*  :: **${data.teacher}**
+> *Note*   :: ${data.comment || "None"}`;
+
+    return message;
+}
+
 export function isClassImpacted(data: ShortSubstitution, cohort: string): boolean {
     const impactedCohorts: string[] = data.cohorts.split(", ");
 
@@ -152,6 +211,17 @@ export function isNewsClassImpacted(data: ShortNews, cohort: string): boolean {
 
     const cohortWithoutDot = cohort.replace(".", "");
     return (cohort == "ALL" || content.includes(cohort) || title.includes(cohort) || content.includes(cohortWithoutDot) || title.includes(cohortWithoutDot)) && cohort != "";
+}
+
+export function isMovedClassImpacted(data: ShortMovedLesson, cohort: string): boolean {
+    const impactedCohorts: string[] = data.cohorts.split(", ");
+
+    if (cohort == "ALL") {
+        return true;
+    } else if (impactedCohorts.includes(cohort)) {
+        return true;
+    }
+    return false;
 }
 
 export function saveServerData(serverData: ServerData[]) {
