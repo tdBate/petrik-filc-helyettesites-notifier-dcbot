@@ -2,7 +2,7 @@ import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } from "di
 import { RootSubstitution, Teacher2 } from "./models/substitutionModels";
 import { RootNews } from "./models/announcementModels";
 import { ShortSubstitution, ServerData, ShortNews, ShortMovedLesson } from "./models/createdModels";
-import { createSubMessageText, detectSubChanges, filterData, isClassImpacted, parseNews, parseSubstitution, saveServerData, detectNewsChanges, isNewsClassImpacted, createNewsMessageText, parseMovedLesson, detectMovedLessonChanges, isMovedClassImpacted } from "./tools";
+import { createSubMessageText, detectSubChanges, filterData, isClassImpacted, parseNews, parseSubstitution, saveServerData, detectNewsChanges, isNewsClassImpacted, createNewsMessageText, parseMovedLesson, detectMovedLessonChanges, isMovedClassImpacted, createMovedMessageText } from "./tools";
 import fs from "node:fs";
 import "dotenv/config";
 import { RootMovedLesson } from "./models/movedLessonModels";
@@ -118,7 +118,6 @@ async function getMovedData() {
             for (let i = 0; i < changes.length; i++) {
                 const movedLesson = changes[i];
                 if (movedLesson != null) {
-                    console.log(JSON.stringify(movedLesson));
                     sendMovedMessage(movedLesson);
                 }
             }

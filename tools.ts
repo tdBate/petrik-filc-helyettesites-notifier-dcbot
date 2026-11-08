@@ -182,6 +182,18 @@ export function createNewsMessageText(data: ShortNews): string {
     return message;
 }
 
+export function createMovedMessageText(data: ShortMovedLesson): string {
+    const date = new Date(data.date);
+    const message = `## **Moved Lesson Notice**
+> *Time*   :: ${date.toLocaleDateString("hu-HU")} **${weekday[date.getDay()]}** @ ${data.time}
+> *Lesson*  :: ${data.cohorts} ${data.group} **${data.lessons}**
+> *Room* :: ${data.originalClassroom} -> **${data.newClassroom}**
+> *Staff*  :: **${data.teacher}**
+> *Note*   :: ${data.comment || "None"}`;
+
+    return message;
+}
+
 export function isClassImpacted(data: ShortSubstitution, cohort: string): boolean {
     const impactedCohorts: string[] = data.cohorts.split(", ");
 
