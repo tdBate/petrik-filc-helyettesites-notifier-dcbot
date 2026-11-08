@@ -201,6 +201,17 @@ export function isNewsClassImpacted(data: ShortNews, cohort: string): boolean {
     return (cohort == "ALL" || content.includes(cohort) || title.includes(cohort) || content.includes(cohortWithoutDot) || title.includes(cohortWithoutDot)) && cohort != "";
 }
 
+export function isMovedClassImpacted(data: ShortMovedLesson, cohort: string): boolean {
+    const impactedCohorts: string[] = data.cohorts.split(", ");
+
+    if (cohort == "ALL") {
+        return true;
+    } else if (impactedCohorts.includes(cohort)) {
+        return true;
+    }
+    return false;
+}
+
 export function saveServerData(serverData: ServerData[]) {
     fs.writeFileSync("./data/servers.json", JSON.stringify(serverData));
 }
