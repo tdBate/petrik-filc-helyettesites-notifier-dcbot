@@ -22,3 +22,15 @@ export interface ShortNews {
     content: string;
     time: Date;
 }
+
+export interface ShortMovedLesson {
+    lessons: string;
+    cohorts: string;
+    group: string;
+    date: Date;
+    time: string;
+    originalClassroom: string;
+    newClassroom: string;
+    teacher: string;
+    comment: string;
+}
