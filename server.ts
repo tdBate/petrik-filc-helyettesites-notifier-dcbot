@@ -2,7 +2,7 @@ import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } from "di
 import { RootSubstitution, Teacher2 } from "./models/substitutionModels";
 import { RootNews } from "./models/announcementModels";
 import { ShortSubstitution, ServerData, ShortNews, ShortMovedLesson } from "./models/createdModels";
-import { createSubMessageText, detectSubChanges, filterData, isClassImpacted, parseNews, parseSubstitution, saveServerData, detectNewsChanges, isNewsClassImpacted, createNewsMessageText, parseMovedLesson } from "./tools";
+import { createSubMessageText, detectSubChanges, filterData, isClassImpacted, parseNews, parseSubstitution, saveServerData, detectNewsChanges, isNewsClassImpacted, createNewsMessageText, parseMovedLesson, detectMovedLessonChanges } from "./tools";
 import fs from "node:fs";
 import "dotenv/config";
 import { RootMovedLesson } from "./models/movedLessonModels";
@@ -109,16 +109,17 @@ async function getMovedData() {
         const response: Response = await fetch(URL_MOVED_LESSONS);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const new_movedData: ShortMovedLesson[] = JSON.parse(await response.text()).json.items.map((item: RootMovedLesson) => parseMovedLesson(item));
-        console.log(JSON.stringify(new_movedData))
+        //console.log(JSON.stringify(new_movedData))
 
         //check for changes
         if (JSON.stringify(new_movedData) != JSON.stringify(movedData)) {
             const changes: ShortMovedLesson[] = detectMovedLessonChanges(movedData, new_movedData);
             //if (changes.length>10) {throw new Error("Too much new data");}
             for (let i = 0; i < changes.length; i++) {
-                const shortSub = parseSubstitution(changes[i]);
-                if (shortSub != null) {
-                    sendMessage(shortSub);
+                const movedLesson = changes[i];
+                if (movedLesson != null) {
+                    console.log(JSON.stringify(movedLesson));
+                    //sendMovedMessage(movedLesson);
                 }
             }
 

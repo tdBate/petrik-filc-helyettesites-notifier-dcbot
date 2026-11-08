@@ -89,6 +89,7 @@ export function parseMovedLesson(data: RootMovedLesson) {
 
 
         const shortMovedLesson: ShortMovedLesson = {
+            id: data.movedLesson.id,
             lessons: base_lesson.subject.short,
             cohorts: base_lesson.cohorts.map(a => { return a.short }).join(", "),
             group: base_lesson.groups.map(a => a.name).join(", ") || "",
@@ -121,6 +122,23 @@ export function detectSubChanges(oldData: RootSubstitution[], newData: RootSubst
         }
     }
     return addedSubstitutions;
+}
+
+export function detectMovedLessonChanges(oldData: ShortMovedLesson[], newData: ShortMovedLesson[]): ShortMovedLesson[] {
+    let addedMovedLesson: ShortMovedLesson[] = [];
+    for (let i = 0; i < newData.length; i++) {
+        const item: ShortMovedLesson = newData[i];
+
+        if (
+            !oldData.some((a: ShortMovedLesson) => {
+                const condition: boolean = a.id == item.id;
+                return condition;
+            })
+        ) {
+            addedMovedLesson.push(item);
+        }
+    }
+    return addedMovedLesson;
 }
 
 export function detectNewsChanges(oldData: ShortNews[], newData: ShortNews[]): ShortNews[] {

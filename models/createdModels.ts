@@ -24,6 +24,7 @@ export interface ShortNews {
 }
 
 export interface ShortMovedLesson {
+    id: string;
     lessons: string;
     cohorts: string;
     group: string;
