@@ -159,12 +159,15 @@ export function detectNewsChanges(oldData: ShortNews[], newData: ShortNews[]): S
 
 export function createSubMessageText(data: ShortSubstitution): string {
     const date = new Date(data.date);
-    const message = `## **Substitution Notice**
+    let message = `## **Substitution Notice**
 > *Time*   :: ${date.toLocaleDateString("hu-HU")} **${weekday[date.getDay()]}** @ ${data.time}
 > *Class*  :: ${data.cohorts} ${data.group} (Room: ${data.classroom})
 > *Lesson* :: **${data.lessons}**
-> *Staff*  :: **${data.subteacher}** (covering ${data.teacher})
-> *Note*   :: ${data.comment || "None"}`;
+> *Staff*  :: **${data.subteacher}** (covering ${data.teacher})`;
+
+    if (data.comment) {
+        message += `\n> *Note*   :: ${data.comment}`
+    }
 
     return message;
 }
@@ -184,12 +187,15 @@ export function createNewsMessageText(data: ShortNews): string {
 
 export function createMovedMessageText(data: ShortMovedLesson): string {
     const date = new Date(data.date);
-    const message = `## **Moved Lesson Notice**
+    let message = `## **Moved Lesson Notice**
 > *Time*   :: ${date.toLocaleDateString("hu-HU")} **${weekday[date.getDay()]}** @ ${data.time}
 > *Lesson*  :: ${data.cohorts} ${data.group} **${data.lessons}**
 > *Room* :: ${data.originalClassroom} -> **${data.newClassroom}**
-> *Staff*  :: **${data.teacher}**
-> *Note*   :: ${data.comment || "None"}`;
+> *Staff*  :: **${data.teacher}**`;
+
+    if (data.comment) {
+        message += `\n> *Note*   :: ${data.comment}`
+    }
 
     return message;
 }
