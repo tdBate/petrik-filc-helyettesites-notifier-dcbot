@@ -7,6 +7,7 @@ import { teachersList } from "./server";
 import { RootMovedLesson } from "./models/movedLessonModels";
 
 const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dateFormatter = new Intl.DateTimeFormat("hu-HU");
 
 export function parseSubstitution(data: RootSubstitution): ShortSubstitution | null {
     try {
@@ -160,7 +161,7 @@ export function detectNewsChanges(oldData: ShortNews[], newData: ShortNews[]): S
 export function createSubMessageText(data: ShortSubstitution): string {
     const date = new Date(data.date);
     let message = `## **Substitution Notice**
-> *Time*   :: ${date.toLocaleDateString("hu-HU")} **${weekday[date.getDay()]}** @ ${data.time}
+> *Time*   :: ${dateFormatter.format(date)} **${weekday[date.getDay()]}** @ ${data.time}
 > *Class*  :: ${data.cohorts} ${data.group} (Room: ${data.classroom})
 > *Lesson* :: **${data.lessons}**
 > *Staff*  :: **${data.subteacher}** (covering ${data.teacher})`;
@@ -180,7 +181,7 @@ export function createNewsMessageText(data: ShortNews): string {
         message += `\n${data.content}`;
     }
 
-    message += `\n*${data.time.toLocaleDateString("en-CA")} ${weekday[data.time.getDay()]}*`;
+    message += `\n*${dateFormatter.format(data.time)} ${weekday[data.time.getDay()]}*`;
 
     return message;
 }
@@ -188,7 +189,7 @@ export function createNewsMessageText(data: ShortNews): string {
 export function createMovedMessageText(data: ShortMovedLesson): string {
     const date = new Date(data.date);
     let message = `## **Moved Lesson Notice**
-> *Time*   :: ${date.toLocaleDateString("hu-HU")} **${weekday[date.getDay()]}** @ ${data.time}
+> *Time*   :: ${dateFormatter.format(date)} **${weekday[date.getDay()]}** @ ${data.time}
 > *Lesson*  :: ${data.cohorts} ${data.group} **${data.lessons}**
 > *Room* :: ${data.originalClassroom} -> **${data.newClassroom}**
 > *Staff*  :: **${data.teacher}**`;
