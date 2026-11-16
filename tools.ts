@@ -201,7 +201,7 @@ export function createMovedMessageText(data: ShortMovedLesson): string {
     return message;
 }
 
-export function isClassImpacted(data: ShortSubstitution, cohort: string): boolean {
+export function isSubClassImpacted(data: ShortSubstitution, cohort: string): boolean {
     const impactedCohorts: string[] = data.cohorts.split(", ");
 
     if (cohort == "ALL") {

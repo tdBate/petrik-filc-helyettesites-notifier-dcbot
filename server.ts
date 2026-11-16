@@ -2,16 +2,22 @@ import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } from "di
 import { RootSubstitution, Teacher2 } from "./models/substitutionModels";
 import { RootNews } from "./models/announcementModels";
 import { ShortSubstitution, ServerData, ShortNews, ShortMovedLesson } from "./models/createdModels";
-import { createSubMessageText, detectSubChanges, filterData, isClassImpacted, parseNews, parseSubstitution, saveServerData, detectNewsChanges, isNewsClassImpacted, createNewsMessageText, parseMovedLesson, detectMovedLessonChanges, isMovedClassImpacted, createMovedMessageText } from "./tools";
+import { createSubMessageText, detectSubChanges, filterData, isSubClassImpacted, parseNews, parseSubstitution, saveServerData, detectNewsChanges, isNewsClassImpacted, createNewsMessageText, parseMovedLesson, detectMovedLessonChanges, isMovedClassImpacted, createMovedMessageText } from "./tools";
 import fs from "node:fs";
 import "dotenv/config";
 import { RootMovedLesson } from "./models/movedLessonModels";
 
-//data stuff
+//url stuff
 const URL_SUBSTITUTIONS: string = "https://filc.petrik.hu/api/timetable/substitutions";
 const URL_NEWS: string = "https://filc.petrik.hu/api/news/announcements";
 const URL_MOVED_LESSONS = "https://filc.petrik.hu/api/rpc/timetable/movedLessons/list";
 const TEACHER_LINK = "https://filc.petrik.hu/api/rpc/timetable/teachers/getAll";
+
+//constants stuff
+const CYCLE_TIME = (1000 * 60) * 5; //last (one min in secs) * mins
+const FETCH_TIMEOUT_MS = 30000;
+
+//data stuff
 let substitutionData: RootSubstitution[];
 let newsData: ShortNews[];
 let serverData: ServerData[];
@@ -27,7 +33,7 @@ async function setup() {
 
 async function getSubData() {
     try {
-        const response: Response = await fetch(URL_SUBSTITUTIONS);
+        const response: Response = await fetch(URL_SUBSTITUTIONS, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const new_substitutionData: RootSubstitution[] = filterData(JSON.parse(await response.text()).items);
 
@@ -38,7 +44,7 @@ async function getSubData() {
             for (let i = 0; i < changes.length; i++) {
                 const shortSub = parseSubstitution(changes[i]);
                 if (shortSub != null) {
-                    sendMessage(shortSub);
+                    await sendSubMessage(shortSub);
                 }
             }
 
@@ -55,6 +61,7 @@ async function getNewsData() {
     try {
         const response: Response = await fetch(URL_NEWS, {
             method: "GET",
+            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
             headers: {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
                 Cookie: `__Secure-filc.session_token=${process.env.SESSION_TOKEN}`
@@ -74,7 +81,7 @@ async function getNewsData() {
             for (let i = 0; i < changes.length; i++) {
                 const shortNew = changes[i];
                 if (shortNew != null) {
-                    sendNewsMessage(shortNew);
+                    await sendNewsMessage(shortNew);
                 }
             }
 
@@ -91,6 +98,7 @@ async function getTeachers() {
     try {
         const response: Response = await fetch(TEACHER_LINK, {
             method: "GET",
+            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
             headers: {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
                 Cookie: `__Secure-filc.session_token=${process.env.SESSION_TOKEN}`
@@ -106,7 +114,7 @@ async function getTeachers() {
 
 async function getMovedData() {
     try {
-        const response: Response = await fetch(URL_MOVED_LESSONS);
+        const response: Response = await fetch(URL_MOVED_LESSONS, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const new_movedData: ShortMovedLesson[] = JSON.parse(await response.text()).json.items.map((item: RootMovedLesson) => parseMovedLesson(item));
         //console.log(JSON.stringify(new_movedData))
@@ -118,7 +126,7 @@ async function getMovedData() {
             for (let i = 0; i < changes.length; i++) {
                 const movedLesson = changes[i];
                 if (movedLesson != null) {
-                    sendMovedMessage(movedLesson);
+                    await sendMovedMessage(movedLesson);
                 }
             }
 
@@ -200,58 +208,70 @@ function setupDiscord() {
     });
 }
 
-function sendMessage(data: ShortSubstitution) {
+async function sendToChannel(channelId: string, text: string) {
+    try {
+        const channel = await client.channels.fetch(channelId);
+        if (channel && channel.isSendable()) {
+            await channel.send(text);
+        }
+    } catch (err) {
+        console.error(`Sending failed:`, err);
+    }
+}
+
+async function sendSubMessage(data: ShortSubstitution) {
+    const text = createSubMessageText(data);
+
     for (let i = 0; i < serverData.length; i++) {
-        if (isClassImpacted(data, serverData[i].cohort)) {
+        if (isSubClassImpacted(data, serverData[i].cohort)) {
             //check if selected class is impacted
-            client.channels.fetch(serverData[i].channel_id).then(channel => {
-                if (channel && channel.isSendable()) {
-                    channel.send(createSubMessageText(data));
-                }
-            });
+            await sendToChannel(serverData[i].channel_id, text);
         }
     }
 }
 
-function sendNewsMessage(data: ShortNews) {
+async function sendNewsMessage(data: ShortNews) {
+    const text = createNewsMessageText(data);
+
     for (let i = 0; i < serverData.length; i++) {
         if (isNewsClassImpacted(data, serverData[i].cohort)) {
-            client.channels.fetch(serverData[i].channel_id).then(channel => {
-                if (channel && channel.isSendable()) {
-                    channel.send(createNewsMessageText(data));
-                }
-            });
+            await sendToChannel(serverData[i].channel_id, text);
         }
     }
 }
 
-function sendMovedMessage(data: ShortMovedLesson) {
+async function sendMovedMessage(data: ShortMovedLesson) {
+    const text = createMovedMessageText(data);
+
     for (let i = 0; i < serverData.length; i++) {
         if (isMovedClassImpacted(data, serverData[i].cohort)) {
-            client.channels.fetch(serverData[i].channel_id).then(channel => {
-                if (channel && channel.isSendable()) {
-                    channel.send(createMovedMessageText(data));
-                }
-            });
+            await sendToChannel(serverData[i].channel_id, text);
         }
     }
+}
+
+async function mainCycle() {
+    await getSubData();
+    await getNewsData();
+    await getMovedData();
 }
 
 async function main() {
     await setup();
     await getTeachers();
-    await getSubData();
-    await getNewsData();
-    await getMovedData();
+    await mainCycle();
 
-    setInterval(
-        () => {
-            getSubData();
-            getNewsData();
-            getMovedData();
-        },
-        1000 * 60 * 5
-    );
+    const scheduleNext = () =>
+        setTimeout(async () => {
+            try {
+                await mainCycle();
+            } catch (err) {
+                console.error("Err:", err);
+            } finally {
+                scheduleNext();
+            }
+        }, CYCLE_TIME);
+    scheduleNext();
 }
 
 setupDiscord();
