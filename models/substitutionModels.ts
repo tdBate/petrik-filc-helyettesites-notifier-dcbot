@@ -13,7 +13,7 @@ export interface Lesson {
     id: string
     period: Period
     periodsPerWeek: number
-    subject: Subject
+    subject?: Subject
     teachers: Teacher[]
     termDefinitionId: string
     weekDefinition: WeekDefinition
@@ -57,8 +57,8 @@ export interface Period {
 
 export interface Subject {
     id: string
-    name: string
-    short: string
+    name?: string
+    short?: string
 }
 
 export interface Teacher {

@@ -14,12 +14,7 @@ export function parseSubstitution(data: RootSubstitution): ShortSubstitution | n
         const base_lesson: Lesson = data.lessons[0];
 
         // lessons
-        let lessonSubject = "N/A";
-        try {
-            lessonSubject = base_lesson.subject.short;
-        } catch (err) {
-            console.error(err);
-        }
+        let lessonSubject = base_lesson.subject?.short || base_lesson.subject?.name || "N/A";
         const cohort = base_lesson.cohorts.map(a => { return a.short }).join(", ");
         const date = data.substitution.date;
         const classroom = base_lesson.classrooms.map(c => c.short || "").join(", ") || "N/A";
@@ -80,7 +75,9 @@ export function parseNews(data: RootNews): ShortNews | null {
 }
 
 export function parseMovedLesson(data: RootMovedLesson) {
-    if (data.lessons.length != 0) { //not manual
+
+    //not manual
+    if (data.lessons.length != 0) {
         try {
             const base_lesson = data.lessons[0];
             let ido =
@@ -107,7 +104,10 @@ export function parseMovedLesson(data: RootMovedLesson) {
         } catch (err) {
             console.error("Movedlesson error: " + err)
         }
-    } else if (data.manual != null) { //manual
+    }
+
+    //manual 
+    else if (data.manual != null) {
         try {
             const base_lesson = data.manual;
 
