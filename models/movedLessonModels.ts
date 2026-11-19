@@ -2,6 +2,7 @@ export interface RootMovedLesson {
     classroom: MovedClassroom
     dayDefinition: DayDefinition
     lessons: Lesson[]
+    manual?: Manual
     movedLesson: MovedLesson
     period: Period2
 }
@@ -104,9 +105,13 @@ export interface WeekDefinition {
 }
 
 export interface MovedLesson {
-    comment: string
+    comment?: string
     date: string
     id: string
+    manualCohortIds: string[]
+    manualSourceRoomId?: string
+    manualSubjectId?: string
+    manualTeacherIds: string[]
     room: string
     startingDay: string
     startingPeriod: string
@@ -119,4 +124,19 @@ export interface Period2 {
     period: number
     startTime: string
     updatedAt: string
+}
+
+export interface ManualSubject {
+    createdAt: string
+    id: string
+    name: string
+    short: string
+    updatedAt: string
+}
+
+export interface Manual {
+    cohorts: Cohort[]
+    sourceRoom: Classroom2
+    subject: ManualSubject
+    teachers: Teacher[]
 }

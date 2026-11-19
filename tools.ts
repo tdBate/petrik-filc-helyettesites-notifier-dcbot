@@ -80,31 +80,54 @@ export function parseNews(data: RootNews): ShortNews | null {
 }
 
 export function parseMovedLesson(data: RootMovedLesson) {
-    const base_lesson = data.lessons[0];
-    try {
-        let ido =
-            data.lessons
-                .map(a => a.period.period)
-                .sort((a, b) => a - b)
-                .join("-") + " óra";
+    if (data.lessons.length != 0) { //not manual
+        try {
+            const base_lesson = data.lessons[0];
+            let ido =
+                data.lessons
+                    .map(a => a.period.period)
+                    .sort((a, b) => a - b)
+                    .join("-") + " óra";
 
 
-        const shortMovedLesson: ShortMovedLesson = {
-            id: data.movedLesson.id,
-            lessons: base_lesson.subject.short,
-            cohorts: base_lesson.cohorts.map(a => { return a.short }).join(", "),
-            group: base_lesson.groups.map(a => a.name).join(", ") || "",
-            date: new Date(data.movedLesson.date),
-            time: ido,
-            originalClassroom: base_lesson.classrooms.map(c => c.short || "").join(", ") || "N/A",
-            newClassroom: data.classroom.short,
-            teacher: base_lesson.teachers.map((t) => t.name).join(", "),
-            comment: data.movedLesson.comment
+            const shortMovedLesson: ShortMovedLesson = {
+                id: data.movedLesson.id,
+                lessons: base_lesson.subject.short,
+                cohorts: base_lesson.cohorts.map(a => { return a.short }).join(", "),
+                group: base_lesson.groups.map(a => a.name).join(", ") || "",
+                date: new Date(data.movedLesson.date),
+                time: ido,
+                originalClassroom: base_lesson.classrooms.map(c => c.short || "").join(", ") || "N/A",
+                newClassroom: data.classroom.short,
+                teacher: base_lesson.teachers.map((t) => t.name).join(", "),
+                comment: data.movedLesson.comment ?? ""
+            }
+
+            return shortMovedLesson;
+        } catch (err) {
+            console.error("Movedlesson error: " + err)
         }
+    } else if (data.manual != null) { //manual
+        try {
+            const base_lesson = data.manual;
 
-        return shortMovedLesson;
-    } catch (err) {
-        console.error("Movedlesson error: " + err)
+            const shortMovedLesson: ShortMovedLesson = {
+                id: data.movedLesson.id,
+                lessons: base_lesson.subject.short,
+                cohorts: base_lesson.cohorts.map(a => { return a.short }).join(", "),
+                group: "", //no group added in filc json
+                date: new Date(data.movedLesson.date),
+                time: data.period.period.toString() + " óra",
+                originalClassroom: base_lesson.sourceRoom.short || "N/A",
+                newClassroom: data.classroom.short,
+                teacher: base_lesson.teachers.map((t) => t.name).join(", "),
+                comment: data.movedLesson.comment || ""
+            }
+
+            return shortMovedLesson;
+        } catch (err) {
+            console.error("Movedlesson error: " + err)
+        }
     }
 }
 
